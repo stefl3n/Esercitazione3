@@ -19,7 +19,7 @@ void gestore(int signo){
 /********************************************************/
 
 int main (int argc, char ** argv){
-	int sd, port, len, pid, fd, maxlen, i;
+	int sd, port, len, pid, fd, maxlen, i, nread;
 	char[256] fileName;
 	char c;
 	const int on = 1;
@@ -101,10 +101,17 @@ int main (int argc, char ** argv){
 			 * 1)Stampare la parola
 			 * 2)Dare la possibilità di cambiare delimitatori
 			 * 3)Esecuzione sequenziale
+			 * 4)Testare ciclo con fgets()
 			 */
 			i=0;
 			maxlen=0;
-			while(read(fd,&c,sizeof(char))>0 && c!=EOF){
+			while((nread=read(fd,&c,sizeof(char)))!=0){
+				if(nread<0){
+					close(fd);
+					close(sd);
+					perror("Errore lettura: ");
+					exit(1);
+				}
 				if(c==' ' || c=='\n'){
 					if(maxlen<i)
 						maxlen=i;
