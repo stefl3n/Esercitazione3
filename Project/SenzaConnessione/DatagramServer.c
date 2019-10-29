@@ -5,6 +5,7 @@
 #include <errno.h>
 #include <fcntl.h>
 #include <sys/types.h>
+#include <sys/wait.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <netdb.h>
@@ -19,8 +20,8 @@ void gestore(int signo){
 /********************************************************/
 
 int main (int argc, char ** argv){
-	int sd, port, len, pid, fd, maxlen, i, nread;
-	char[256] fileName;
+	int sd, port, len, pid, fd, maxlen, i, nread, num1;
+	char fileName[256];
 	char c;
 	const int on = 1;
 	struct sockaddr_in cliaddr, servaddr;
@@ -70,7 +71,7 @@ int main (int argc, char ** argv){
 	printf("Server: bind socket ok\n");
 	
 	/* CICLO RICEZIONE RICHIESTE ----------------------------------------------------------------------- */
-	while(true){
+	for(;;){
 		len=sizeof(struct sockaddr_in);
 		if(recvfrom(sd, fileName, sizeof(fileName), 0, (struct sockaddr *)&cliaddr, &len)<0){
 			perror("recvfrom "); continue;
@@ -78,7 +79,7 @@ int main (int argc, char ** argv){
 		
 		printf("File richiesto: %s", fileName);
 		
-		if(fd = open(fileName, O_RDNLY)<0){
+		if(fd = open(fileName, O_RDONLY)<0){
 			perror("Errore apertura file ");
 			maxlen=-1;
 			if(sendto(sd, &maxlen, sizeof(int), 0, (struct sockaddr *)&cliaddr, len)<0)
@@ -91,7 +92,7 @@ int main (int argc, char ** argv){
 			printf("client host information not found\n");
 		}
 		else
-			printf("Richiesta da Cliente: %s %i", clienthost->h_nam, (unsigned)ntohs(cliaddr.sin_port));
+			printf("Richiesta da Cliente: %s %i", clienthost->h_name, (unsigned)ntohs(cliaddr.sin_port));
 		
 		signal(SIGCHLD, gestore);
 		
@@ -121,7 +122,7 @@ int main (int argc, char ** argv){
 			}
 			close(fd);
 			
-			if((sendto(sd ,&maxlen ,sizeof(int) ,0 ,(struct sockaddr*)&cliaddr ,len)<0)
+			if((sendto(sd ,&maxlen ,sizeof(int) ,0 ,(struct sockaddr*)&cliaddr ,len)<0))
 				perror("sendto");
 			close(sd);
 			
