@@ -19,7 +19,7 @@
 	struct hostent *host;
 	struct sockaddr_in clientaddr, servaddr;
 	int port, sd,byteletti;
-	char  req[10];
+	char  req[256];
 	char c = 's';
 
 	if (argc != 3){
