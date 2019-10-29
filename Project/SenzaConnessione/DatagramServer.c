@@ -74,16 +74,14 @@ int main (int argc, char ** argv){
 	for(;;){
 		len=sizeof(struct sockaddr_in);
 		if(recvfrom(sd, fileName, sizeof(fileName), 0, (struct sockaddr *)&cliaddr, &len)<0){
-			perror("recvfrom "); continue;
+			perror("recvfrom ");
+			return 0;
 		}
 		
-		printf("File richiesto: %s", fileName);
+		printf("File richiesto: %s\n", fileName);
 		
-		if(fd = open(fileName, O_RDONLY)<0){
+		if((fd = open(fileName, O_RDONLY))<0){
 			perror("Errore apertura file ");
-			maxlen=-1;
-			if(sendto(sd, &maxlen, sizeof(int), 0, (struct sockaddr *)&cliaddr, len)<0)
-				perror("sendto ");
 			continue;
 		}
 		
@@ -107,6 +105,7 @@ int main (int argc, char ** argv){
 			i=0;
 			maxlen=0;
 			while((nread=read(fd,&c,sizeof(char)))!=0){
+				printf("%c", c);
 				if(nread<0){
 					close(fd);
 					close(sd);
@@ -124,11 +123,6 @@ int main (int argc, char ** argv){
 			
 			if((sendto(sd ,&maxlen ,sizeof(int) ,0 ,(struct sockaddr*)&cliaddr ,len)<0))
 				perror("sendto");
-			close(sd);
-			
 		}
-		
-		close(fd);
-		close(sd);
 	}
 }

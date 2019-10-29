@@ -19,9 +19,9 @@
 	struct hostent *host;
 	struct sockaddr_in clientaddr, servaddr;
 	int port, sd,byteletti;
-	char  req[256];
+	char req[256];
 	char c = 's';
-
+	
 	if (argc != 3){
 
 		printf("Errore argomenti");
@@ -70,8 +70,8 @@
 	printf("%i \n",sizeof(req));
 
 	while(c == 's'){
-
-		int risposta, temp,len;
+		
+		int risposta, temp, len;
 
 		printf("Inserisci il file che vuoi analizzare \n");
 		scanf("%s", req);
@@ -84,20 +84,14 @@
 
 		}else {
 			len = sizeof(servaddr);
-			byteletti = sendto(sd, &req, sizeof(req), 0, (struct sockaddr *)&servaddr, len);
+			byteletti = sendto(sd, req, sizeof(req), 0, (struct sockaddr *)&servaddr, len);
 			printf("Nome inviato\n e byte inviati: %i \n", byteletti);
 			recvfrom(sd, &temp, sizeof(int), 0, (struct sockaddr *)&servaddr, &len);
 			printf("risposta ricevuta \n");
-			risposta = ntohl(temp);
-			printf("La parola piu lunga misura %d lettere \n", risposta);
+			printf("La parola piu lunga misura %d lettere \n", temp);
 			printf("Vuoi continuare ? s/n \n");
 			scanf("%c", &c);
-
-
 		}
-
-
-
 	}
 	close(sd);
 	return 0;
