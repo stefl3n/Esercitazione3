@@ -23,8 +23,9 @@ void gestore(int signo){
 int main(int argc, char **argv)
 {
 	int  listen_sd, conn_sd;
-	int port, len, num, nlinea, i;
+	int port, len, num, nlinea, i, nread;
 	const int on = 1;
+    char c;
 	struct sockaddr_in cliaddr, servaddr;
 	struct hostent *host;
 
@@ -82,7 +83,7 @@ int main(int argc, char **argv)
 	*/
 	signal(SIGCHLD, gestore);
 	
-	while(true){
+	while(1){
 		len=sizeof(cliaddr);
 		if((conn_sd=accept(listen_sd,(struct sockaddr *)&cliaddr,&len))<0){
 		/* La accept puo' essere interrotta dai segnali inviati dai figli alla loro
@@ -97,8 +98,8 @@ int main(int argc, char **argv)
 		
 		if(fork()==0){
 			close(listen_sd);
-			clienthost = gethostbyaddr((char *)&cliaddr.sin_addr, sizeof(cliaddr.sin_addr), AF_INET);
-			if(clienthost==NULL){
+			host = gethostbyaddr((char *)&cliaddr.sin_addr, sizeof(cliaddr.sin_addr), AF_INET);
+			if(host==NULL){
 				printf("client host information not found\n");
 				continue;
 			}
@@ -129,3 +130,4 @@ int main(int argc, char **argv)
 		}
 		close(conn_sd);
 	}
+}
