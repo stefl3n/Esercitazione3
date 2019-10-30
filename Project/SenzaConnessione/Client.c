@@ -1,9 +1,3 @@
-/*
- * Client.c
- *
- *  Created on: Oct 28, 2019
- *      Author: root
- */
 #include <unistd.h>
 #include <stdlib.h>
 #include <netdb.h>
@@ -19,9 +13,9 @@
 	struct hostent *host;
 	struct sockaddr_in clientaddr, servaddr;
 	int port, sd,byteletti;
-	char req[256];
+	char  req[256];
 	char c = 's';
-	
+
 	if (argc != 3){
 
 		printf("Errore argomenti");
@@ -37,7 +31,7 @@
 	servaddr.sin_family = AF_INET;
 	host = gethostbyname(argv[1]);
 	port = atoi(argv[2]);
-	printf("%i \n", port);
+
 	if(port < 1024 || port > 65535){
 		printf("Errore porta"),
 		exit(1);
@@ -67,32 +61,40 @@
 	}
 
 
-	printf("%i \n",sizeof(req));
+
 
 	while(c == 's'){
-		
-		int risposta, temp, len;
+
+		int risposta, temp,len,cont;
 
 		printf("Inserisci il file che vuoi analizzare \n");
-		scanf("%s", req);
-		printf("%s",req);
+		cont = scanf("%s", req);
 		getchar();
-		printf("%i \n",sizeof(req));
-		if(strcmp(req," ") == 0){
-
-			printf("Nome file non può essere vuoto \n");
-
+		if(cont == EOF){
+			close(sd);
+			return 0;
 		}else {
 			len = sizeof(servaddr);
-			byteletti = sendto(sd, req, sizeof(req), 0, (struct sockaddr *)&servaddr, len);
-			printf("Nome inviato\n e byte inviati: %i \n", byteletti);
+			byteletti = sendto(sd, &req, sizeof(req)  , 0, (struct sockaddr *)&servaddr, len);
+			printf("Nome inviato e byte inviati: %i \n", byteletti);
 			recvfrom(sd, &temp, sizeof(int), 0, (struct sockaddr *)&servaddr, &len);
 			printf("risposta ricevuta \n");
-			printf("La parola piu lunga misura %d lettere \n", temp);
+
+			if(temp == -1)
+
+				printf("File non esistente \n");
+
+			else {printf("La parola piu lunga misura %d lettere \n", temp);
 			printf("Vuoi continuare ? s/n \n");
 			scanf("%c", &c);
+			}
+
 		}
+
+
+
 	}
 	close(sd);
 	return 0;
 }
+
