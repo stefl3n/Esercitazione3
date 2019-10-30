@@ -10,7 +10,8 @@
 #include <netinet/in.h>
 #include <netdb.h>
 #include <string.h>
-
+#define true 1
+#define false 0
 /********************************************************/
 void gestore(int signo){
   int stato;
@@ -20,17 +21,18 @@ void gestore(int signo){
 /********************************************************/
 
 int main (int argc, char ** argv){
-	int sd, port, len, pid, fd, maxlen, i, nread, num1;
+	const int on = 1;
+	int port, sd, fd, len, delen, pid, maxlen, i, j, trovato, nread, num1;
 	char fileName[256];
 	char c;
-	const int on = 1;
+	char * delimitatori;
 	struct sockaddr_in cliaddr, servaddr;
 	struct hostent *clienthost;
 	
 	
 	/* CONTROLLO ARGOMENTI ---------------------------------- */
-	if(argc!=2){
-		printf("Error: %s port\n", argv[0]);
+	if(argc!=2 && argc!=3){
+		printf("Error: %s port [delimitatori]\n", argv[0]);
 		exit(1);
 	}
 	else{
@@ -38,17 +40,28 @@ int main (int argc, char ** argv){
 		while( argv[1][num1]!= '\0' ){
 			if((argv[1][num1] < '0') || (argv[1][num1] > '9')){
 				printf("Secondo argomento non intero\n");
-				printf("Error: %s port\n", argv[0]);
+				printf("Error: %s port [delimitatori]\n", argv[0]);
 				exit(2);
 			}
 			num1++;
 		}  	
 	  	port = atoi(argv[1]);
   		if (port < 1024 || port > 65535){
-		      printf("Error: %s port\n", argv[0]);
+		      printf("Error: %s port [delimitatori]\n", argv[0]);
 		      printf("1024 <= port <= 65535\n");
-		      exit(2);  	
+		      exit(2); 
   		}
+	}
+	
+	if(argc==3){
+		delimitatori = argv[2];
+		delen = strlen(delimitatori);
+	}else{
+		delimitatori = (char*) malloc (3*sizeof(char));
+		delimitatori[0] = ' ';
+		delimitatori[1] = '\n';
+		delimitatori[2] = '\0';
+		delen = strlen(delimitatori);
 	}
 	
 	/* INIZIALIZZAZIONE INDIRIZZO SERVER ---------------------------------- */
@@ -71,7 +84,7 @@ int main (int argc, char ** argv){
 	printf("Server: bind socket ok\n");
 	
 	/* CICLO RICEZIONE RICHIESTE ----------------------------------------------------------------------- */
-	for(;;){
+	while(true){
 		len=sizeof(struct sockaddr_in);
 		if(recvfrom(sd, fileName, sizeof(fileName), 0, (struct sockaddr *)&cliaddr, &len)<0){
 			perror("recvfrom ");
@@ -82,6 +95,9 @@ int main (int argc, char ** argv){
 		
 		if((fd = open(fileName, O_RDONLY))<0){
 			perror("Errore apertura file ");
+			maxlen=-1;
+			if((sendto(sd ,&maxlen ,sizeof(int) ,0 ,(struct sockaddr*)&cliaddr ,len)<0))
+				perror("sendto");
 			continue;
 		}
 		
@@ -90,35 +106,44 @@ int main (int argc, char ** argv){
 			printf("client host information not found\n");
 		}
 		else
-			printf("Richiesta da Cliente: %s %i", clienthost->h_name, (unsigned)ntohs(cliaddr.sin_port));
+			printf("Richiesta da Cliente: %s %i\n", clienthost->h_name, (unsigned)ntohs(cliaddr.sin_port));
 		
 		signal(SIGCHLD, gestore);
 		
 		pid = fork();
 		if(pid==0){
-			/* Da aggiungere se si vuole 2 cose : 
-			 * 1)Stampare la parola
-			 * 2)Dare la possibilità di cambiare delimitatori
-			 * 3)Esecuzione sequenziale
-			 * 4)Testare ciclo con fgets()
+			/* Da aggiungere se si vuole:
+				Esecuzione sequenziale
 			 */
 			i=0;
 			maxlen=0;
 			while((nread=read(fd,&c,sizeof(char)))!=0){
-				printf("%c", c);
+				
 				if(nread<0){
-					close(fd);
-					close(sd);
 					perror("Errore lettura: ");
-					exit(1);
+					close(fd);
+					maxlen=-1;
+					if((sendto(sd ,&maxlen ,sizeof(int) ,0 ,(struct sockaddr*)&cliaddr ,len)<0))
+						perror("sendto");
+					continue;
 				}
-				if(c==' ' || c=='\n'){
-					if(maxlen<i)
-						maxlen=i;
-					i=0;
-				}else 
+	
+				trovato = false;
+				for(j=0; j<delen && !trovato; j++){
+					if(c==delimitatori[j]){
+							trovato = true;
+							if(maxlen<i)
+								maxlen=i;
+							i=0;
+					}
+				}
+				
+				if(!trovato)
 					i++;
 			}
+			
+			if(argc==2)
+				free(delimitatori);
 			close(fd);
 			
 			if((sendto(sd ,&maxlen ,sizeof(int) ,0 ,(struct sockaddr*)&cliaddr ,len)<0))
