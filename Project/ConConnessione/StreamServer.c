@@ -30,22 +30,22 @@ int main(int argc, char **argv)
 	struct hostent *host;
 
 	/* CONTROLLO ARGOMENTI ---------------------------------- */
-	if(argc!=2){
+	if(argc!=3){
 		printf("Error: %s port\n", argv[0]);
 		exit(1);
 	}
 	else{
 		num=0;
-		while( argv[1][num]!= '\0' ){
-			if( (argv[1][num] < '0') || (argv[1][num] > '9') ){
+		while( argv[2][num]!= '\0' ){
+			if( (argv[2][num] < '0') || (argv[2][num] > '9') ){
 				printf("Secondo argomento non intero\n");
 				exit(2);
 			}
 			num++;
 		} 	
-		port = atoi(argv[1]);
+		port = atoi(argv[2]);
 		if (port < 1024 || port > 65535){
-			printf("Error: %s port\n", argv[0]);
+			printf("Error: %s invalid port %d\n", argv[0],port);
 			printf("1024 <= port <= 65535\n");
 			exit(2);  	
 		}
@@ -111,6 +111,7 @@ int main(int argc, char **argv)
 			if((read(conn_sd,&nlinea,sizeof(int)))<0)
 				perror("read su conn ");
 				//da fare
+            printf("nlinea=%d\n",nlinea);
 				i=1;
 			while((nread=read(conn_sd,&c,sizeof(char)))!=0){
 				if(nread<0){
@@ -120,6 +121,7 @@ int main(int argc, char **argv)
 				}
 				if(i!=nlinea){
 					//volendo si puo fare il controllo sulla write
+                    printf("%c",c);//debug
 					write(conn_sd,&c,sizeof(char));
 				}
 				
