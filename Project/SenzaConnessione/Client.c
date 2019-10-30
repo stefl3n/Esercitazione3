@@ -1,3 +1,9 @@
+/*
+ * Client.c
+ *
+ *  Created on: Oct 28, 2019
+ *      Author: root
+ */
 #include <unistd.h>
 #include <stdlib.h>
 #include <netdb.h>
@@ -84,10 +90,10 @@
 
 				printf("File non esistente \n");
 
-			else {printf("La parola piu lunga misura %d lettere \n", temp);
+			else printf("La parola piu lunga misura %d lettere \n", temp);
 			printf("Vuoi continuare ? s/n \n");
 			scanf("%c", &c);
-			}
+
 
 		}
 
