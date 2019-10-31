@@ -15,7 +15,7 @@
 int main(int argc, char ** argv){
     struct sockaddr_in serverAddr;
     struct hostent *remote_host;
-    char input[270], *pathFile;
+    char input[270],*pathFile, *inBuff;
     int numLinea, fd,fdc,nread, sock, p, stat;
     int doExit,doAlright;
     char buf[500];
@@ -48,7 +48,7 @@ int main(int argc, char ** argv){
     }
     
     //bind implicita
-    if(connect(sock,&serverAddr,sizeof(struct sockaddr_in))==-1){
+    if(connect(sock,(struct sockaddr *)&serverAddr,sizeof(struct sockaddr_in))==-1){
         perror("connect ");
         exit(2);
     }
@@ -61,8 +61,10 @@ int main(int argc, char ** argv){
          //  if(input[0]==EOF) exit=TRUE;
            //else printf("input errato\n");
        //}
+       
        scanf("%s",input);
        pathFile = strtok(input, " ");
+    
        if(pathFile == NULL){
            printf("errore in input, inserire: pathFile numLinea\n");
            doAlright=FALSE;
@@ -74,12 +76,20 @@ int main(int argc, char ** argv){
        }
        
        if(doAlright){
-           numLinea = atoi(strtok(input, " "));//TODO:usare funzione di conversione che consenta controllo errore
+           //printf("%s", strtok(NULL, " "));
+           scanf("%s", &input);
+           inBuff=strtok(input, " ");
+           if(!(numLinea = atoi(inBuff)))
+           {
+               printf("numero liena non valido\n");
+               doAlright=FALSE;
+           }
+          //TODO:usare funzione di conversione che consenta controllo errore
        }
        
        //protocollo programma
        //if(alright && !exit){
-       if(doAlright){//BUG invia 0 a prescindere :( forse strtok canna cose o io non la so usare
+       if(doAlright){//BUG invia 0 a prescindere :( forse strtok canna cose o io non la so usare//RISOLTO
            printf("sto per inviare il numero numlinea=%d\n",numLinea);
            write(sock, &numLinea, sizeof(int));
            
@@ -100,7 +110,7 @@ int main(int argc, char ** argv){
                 printf("file creato fdc=%d, inizio a leggere\n",fdc);
                 if(fdc!=-1){
                     
-                //BUG viene creato file non apribile.
+                //BUG viene creato file non apribile.//a me si apre....?
                 while((nread=read(sock, &rec_c, sizeof(char)))>0){
                     printf("%c",rec_c);//debug
                     write(fdc,&rec_c,nread);
