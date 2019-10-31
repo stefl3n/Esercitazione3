@@ -11,8 +11,11 @@
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <netdb.h>
+<<<<<<< Updated upstream
 #define true 1
 #define false 0
+=======
+
 
 /********************************************************/
 void gestore(int signo){
@@ -77,7 +80,6 @@ int main(int argc, char **argv)
 	if (listen(listen_sd, 5)<0) //creazione coda d'ascolto
 	{perror("listen"); exit(1);}
 	printf("Server: listen ok\n");
-
 	/* AGGANCIO GESTORE PER EVITARE FIGLI ZOMBIE,
 	* Quali altre primitive potrei usare? E' portabile su tutti i sistemi?
 	* Pregi/Difetti?
