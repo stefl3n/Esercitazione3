@@ -11,11 +11,8 @@
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <netdb.h>
-<<<<<<< Updated upstream
 #define true 1
 #define false 0
-=======
-
 
 /********************************************************/
 void gestore(int signo){
