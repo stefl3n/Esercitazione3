@@ -117,7 +117,8 @@ int main (int argc, char ** argv){
 			 */
 			i=0;
 			maxlen=0;
-			while((nread=read(fd,&c,sizeof(char)))!=0){
+			do{
+				nread=read(fd,&c,sizeof(char));
 				
 				if(nread<0){
 					perror("Errore lettura: ");
@@ -130,7 +131,7 @@ int main (int argc, char ** argv){
 	
 				trovato = false;
 				for(j=0; j<delen && !trovato; j++){
-					if(c==delimitatori[j]){
+					if(c==delimitatori[j] || nread==0){
 							trovato = true;
 							if(maxlen<i)
 								maxlen=i;
@@ -140,7 +141,7 @@ int main (int argc, char ** argv){
 				
 				if(!trovato)
 					i++;
-			}
+			}while(nread!=0);
 			
 			if(argc==2)
 				free(delimitatori);

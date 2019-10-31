@@ -68,9 +68,15 @@ int main(int argc, char **argv){
 	
 	while((scanf("%s", req)!=EOF)){
 		len = sizeof(servaddr);
-		sendto(sd, &req, sizeof(req)  , 0, (struct sockaddr *)&servaddr, len);
+		if((sendto(sd, &req, sizeof(req)  , 0, (struct sockaddr *)&servaddr, len))<0){
+			perror("sendto ");
+			exit(1);
+		}
 		
-		recvfrom(sd, &temp, sizeof(int), 0, (struct sockaddr *)&servaddr, &len);
+		if((recvfrom(sd, &temp, sizeof(int), 0, (struct sockaddr *)&servaddr, &len))<0){
+			perror("recvfrom ");
+			exit(1);
+		}
 		
 		printf("Risposta ricevuta -> ");
 		if(temp == -1){
