@@ -48,6 +48,10 @@ int contaPiuLunga(int sd, int delen, int fd, char * delimitatori){
 			i++;
 	}while(nread!=0);
 	
+<<<<<<< HEAD
+=======
+	close(fd);
+>>>>>>> master
 	return maxlen;
 }
 
@@ -132,7 +136,10 @@ int main (int argc, char ** argv){
 			printf("Richiesta da Cliente: %s %i\n", clienthost->h_name, (unsigned)ntohs(cliaddr.sin_port));
 		
 		
+<<<<<<< HEAD
 		
+=======
+>>>>>>> master
 		if(dim>DIM_FILE){
 			signal(SIGCHLD, gestore);
 			if(fork()==0)
