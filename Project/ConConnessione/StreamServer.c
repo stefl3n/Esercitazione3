@@ -74,22 +74,15 @@ int main(int argc, char **argv)
 	{perror("bind socket d'ascolto"); exit(1);}
 	printf("Server: bind socket d'ascolto ok\n");
 
-	if (listen(listen_sd, 5)<0) //creazione coda d'ascolto
+	if (listen(listen_sd, 5)<0)
 	{perror("listen"); exit(1);}
 	printf("Server: listen ok\n");
-	/* AGGANCIO GESTORE PER EVITARE FIGLI ZOMBIE,
-	* Quali altre primitive potrei usare? E' portabile su tutti i sistemi?
-	* Pregi/Difetti?
-	* Alcune risposte le potete trovare nel materiale aggiuntivo!
-	*/
+
 	signal(SIGCHLD, gestore);
 	
 	while(true){
 		len=sizeof(cliaddr);
 		if((conn_sd=accept(listen_sd,(struct sockaddr *)&cliaddr,&len))<0){
-		/* La accept puo' essere interrotta dai segnali inviati dai figli alla loro
-		* teminazione. Tale situazione va gestita opportunamente. Vedere nel man a cosa 
-		* corrisponde la costante EINTR!*/
 			if (errno==EINTR){
 				perror("Interruzione accept ");
 				continue;
@@ -124,8 +117,6 @@ int main(int argc, char **argv)
 					exit(2);
 				}
 				if(i!=nlinea){
-					//volendo si puo fare il controllo sulla write
-                    printf("%c",c);//debug
 					if((write(conn_sd,&c,sizeof(char)))<0){
 						perror("Errore scrittura ");
 						exit(2);

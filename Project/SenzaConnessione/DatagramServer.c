@@ -56,12 +56,6 @@ int main (int argc, char ** argv){
 	if(argc==3){
 		delimitatori = argv[2];
 		delen = strlen(delimitatori);
-	}else{
-		delimitatori = (char*) malloc (3*sizeof(char));
-		delimitatori[0] = ' ';
-		delimitatori[1] = '\n';
-		delimitatori[2] = '\0';
-		delen = strlen(delimitatori);
 	}
 	
 	/* INIZIALIZZAZIONE INDIRIZZO SERVER ---------------------------------- */
@@ -128,7 +122,7 @@ int main (int argc, char ** argv){
 	
 				trovato = false;
 				for(j=0; j<delen && !trovato; j++){
-					if(c==delimitatori[j] || nread==0){
+					if(c==delimitatori[j] || nread==0 || c==' ' || c=='\n'){
 							trovato = true;
 							if(maxlen<i)
 								maxlen=i;
