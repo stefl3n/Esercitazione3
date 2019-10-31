@@ -11,6 +11,8 @@
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <netdb.h>
+#define true 1
+#define false 0
 
 /********************************************************/
 void gestore(int signo){
@@ -30,20 +32,20 @@ int main(int argc, char **argv)
 	struct hostent *host;
 
 	/* CONTROLLO ARGOMENTI ---------------------------------- */
-	if(argc!=3){
+	if(argc!=2){
 		printf("Error: %s port\n", argv[0]);
 		exit(1);
 	}
 	else{
 		num=0;
-		while( argv[2][num]!= '\0' ){
-			if( (argv[2][num] < '0') || (argv[2][num] > '9') ){
+		while( argv[1][num]!= '\0' ){
+			if( (argv[1][num] < '0') || (argv[1][num] > '9') ){
 				printf("Secondo argomento non intero\n");
 				exit(2);
 			}
 			num++;
 		} 	
-		port = atoi(argv[2]);
+		port = atoi(argv[1]);
 		if (port < 1024 || port > 65535){
 			printf("Error: %s invalid port %d\n", argv[0],port);
 			printf("1024 <= port <= 65535\n");
@@ -62,7 +64,7 @@ int main(int argc, char **argv)
 	listen_sd=socket(AF_INET, SOCK_STREAM, 0);
 	if(listen_sd <0)
 	{perror("creazione socket "); exit(1);}
-	printf("Server: creata la socket d'ascolto per le richieste di ordinamento, fd=%d\n", listen_sd);
+	printf("Server: creata la socket d'ascolto per le richieste di ordinamento, sd=%d\n", listen_sd);
 
 	if(setsockopt(listen_sd, SOL_SOCKET, SO_REUSEADDR, &on, sizeof(on))<0)
 	{perror("set opzioni socket d'ascolto"); exit(1);}
@@ -83,14 +85,14 @@ int main(int argc, char **argv)
 	*/
 	signal(SIGCHLD, gestore);
 	
-	while(1){
+	while(true){
 		len=sizeof(cliaddr);
 		if((conn_sd=accept(listen_sd,(struct sockaddr *)&cliaddr,&len))<0){
 		/* La accept puo' essere interrotta dai segnali inviati dai figli alla loro
 		* teminazione. Tale situazione va gestita opportunamente. Vedere nel man a cosa 
 		* corrisponde la costante EINTR!*/
 			if (errno==EINTR){
-				perror("Forzo la continuazione della accept");
+				perror("Interruzione accept ");
 				continue;
 			}
 			else exit(1);
@@ -98,31 +100,37 @@ int main(int argc, char **argv)
 		
 		if(fork()==0){
 			close(listen_sd);
+			
 			host = gethostbyaddr((char *)&cliaddr.sin_addr, sizeof(cliaddr.sin_addr), AF_INET);
 			if(host==NULL){
 				printf("client host information not found\n");
 				continue;
 			}
 			else
-				printf("Server (figlio) %d: host client è: %s \n", getpid(), host-> h_name);
+				printf("Server (figlio %d): host client è: %s \n", getpid(), host-> h_name);
 			
-			printf("Server(figlio) %d: filtro il file", getpid());
+			printf("Server(figlio %d): filtro il file", getpid());
 			
-			if((read(conn_sd,&nlinea,sizeof(int)))<0)
-				perror("read su conn ");
-				//da fare
+			if((read(conn_sd,&nlinea,sizeof(int)))<0){
+				perror("Errore lettura n°linea ");
+				exit(1);
+			}
+				
             printf("nlinea=%d\n",nlinea);
 				i=1;
 			while((nread=read(conn_sd,&c,sizeof(char)))!=0){
 				if(nread<0){
 					close(conn_sd);
-					perror("Errore lettura: ");
-					exit(1);
+					perror("Errore lettura ");
+					exit(2);
 				}
 				if(i!=nlinea){
 					//volendo si puo fare il controllo sulla write
                     printf("%c",c);//debug
-					write(conn_sd,&c,sizeof(char));
+					if((write(conn_sd,&c,sizeof(char)))<0){
+						perror("Errore scrittura ");
+						exit(2);
+					}
 				}
 				
 				if(c=='\n')
