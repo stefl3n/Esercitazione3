@@ -10,8 +10,10 @@
 #include <netinet/in.h>
 #include <netdb.h>
 #include <string.h>
+#include <sys/stat.h>
 #define true 1
 #define false 0
+#define DIM_FILE 30
 /********************************************************/
 void gestore(int signo){
   int stato;
@@ -20,15 +22,42 @@ void gestore(int signo){
 }
 /********************************************************/
 
+int contaPiuLunga(int sd, int delen, int fd, char * delimitatori){
+	int i=0, j, trovato, nread, maxlen=0;
+	char c;
+	do{
+		nread=read(fd,&c,sizeof(char));
+			
+		if(nread<0){
+			perror("Errore lettura: ");
+			close(fd);
+			return -1;
+		}
+	
+		trovato = false;
+		for(j=0; j<delen && !trovato; j++){
+			if(c==delimitatori[j] || nread==0 || c==' ' || c=='\n'){
+					trovato = true;
+					if(maxlen<i)
+						maxlen=i;
+					i=0;
+			}
+		}
+				
+		if(!trovato)
+			i++;
+	}while(nread!=0);
+	
+	return maxlen;
+}
+
 int main (int argc, char ** argv){
 	const int on = 1;
-	int port, sd, fd, len, delen, pid, maxlen, i, j, trovato, nread, num1;
+	int port, sd, fd, len, delen, maxlen, num1, dim=0;
 	char fileName[256];
-	char c;
 	char * delimitatori;
 	struct sockaddr_in cliaddr, servaddr;
 	struct hostent *clienthost;
-	
 	
 	/* CONTROLLO ARGOMENTI ---------------------------------- */
 	if(argc!=2 && argc!=3){
@@ -102,40 +131,17 @@ int main (int argc, char ** argv){
 		else
 			printf("Richiesta da Cliente: %s %i\n", clienthost->h_name, (unsigned)ntohs(cliaddr.sin_port));
 		
-		signal(SIGCHLD, gestore);
 		
-		pid = fork();
-		if(pid==0){
-			i=0;
-			maxlen=0;
-			do{
-				nread=read(fd,&c,sizeof(char));
-				
-				if(nread<0){
-					perror("Errore lettura: ");
-					close(fd);
-					maxlen=-1;
-					if((sendto(sd ,&maxlen ,sizeof(int) ,0 ,(struct sockaddr*)&cliaddr ,len)<0))
-						perror("sendto");
-					continue;
-				}
+		
+		if(dim>DIM_FILE){
+			signal(SIGCHLD, gestore);
+			if(fork()==0)
+				maxlen = contaPiuLunga(sd, delen, fd, delimitatori);
+		}else
+			maxlen = contaPiuLunga(sd, delen, fd, delimitatori);
+		
 	
-				trovato = false;
-				for(j=0; j<delen && !trovato; j++){
-					if(c==delimitatori[j] || nread==0 || c==' ' || c=='\n'){
-							trovato = true;
-							if(maxlen<i)
-								maxlen=i;
-							i=0;
-					}
-				}
-				
-				if(!trovato)
-					i++;
-			}while(nread!=0);
-			
-			if((sendto(sd ,&maxlen ,sizeof(int) ,0 ,(struct sockaddr*)&cliaddr ,len)<0))
+		if((sendto(sd ,&maxlen ,sizeof(int) ,0 ,(struct sockaddr*)&cliaddr ,len)<0))
 				perror("sendto");
-		}
 	}
 }
