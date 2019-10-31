@@ -110,38 +110,35 @@ int main (int argc, char ** argv){
 		
 		signal(SIGCHLD, gestore);
 		
-		pid = fork();
-		if(pid==0){
-			i=0;
-			maxlen=0;
-			do{
-				nread=read(fd,&c,sizeof(char));
+		i=0;
+		maxlen=0;
+		do{
+			nread=read(fd,&c,sizeof(char));
 				
-				if(nread<0){
-					perror("Errore lettura: ");
-					close(fd);
-					maxlen=-1;
-					if((sendto(sd ,&maxlen ,sizeof(int) ,0 ,(struct sockaddr*)&cliaddr ,len)<0))
-						perror("sendto");
-					continue;
-				}
+			if(nread<0){
+				perror("Errore lettura: ");
+				close(fd);
+				maxlen=-1;
+				if((sendto(sd ,&maxlen ,sizeof(int) ,0 ,(struct sockaddr*)&cliaddr ,len)<0))
+					perror("sendto");
+				continue;
+			}
 	
-				trovato = false;
-				for(j=0; j<delen && !trovato; j++){
-					if(c==delimitatori[j] || nread==0){
-							trovato = true;
-							if(maxlen<i)
-								maxlen=i;
-							i=0;
-					}
+			trovato = false;
+			for(j=0; j<delen && !trovato; j++){
+				if(c==delimitatori[j] || nread==0){
+						trovato = true;
+						if(maxlen<i)
+							maxlen=i;
+						i=0;
 				}
+			}
 				
-				if(!trovato)
-					i++;
-			}while(nread!=0);
+			if(!trovato)
+				i++;
+		}while(nread!=0);
 			
-			if((sendto(sd ,&maxlen ,sizeof(int) ,0 ,(struct sockaddr*)&cliaddr ,len)<0))
-				perror("sendto");
-		}
+		if((sendto(sd ,&maxlen ,sizeof(int) ,0 ,(struct sockaddr*)&cliaddr ,len)<0))
+			perror("sendto");
 	}
 }

@@ -12,12 +12,13 @@
 #include <netinet/in.h>
 #include <sys/socket.h>
 #include <string.h>
-
+#include <sys/time.h>
 
 int main(int argc, char **argv){
 	struct hostent *host;
 	struct sockaddr_in clientaddr, servaddr;
 	int port, sd,byteletti, risposta, temp,len,cont;
+	struct timeval start, stop;
 	char  req[256];
 	char c = 's';
 
@@ -68,6 +69,8 @@ int main(int argc, char **argv){
 	
 	while((scanf("%s", req)!=EOF)){
 		len = sizeof(servaddr);
+		
+		gettimeofday(&start, NULL);
 		if((sendto(sd, &req, sizeof(req)  , 0, (struct sockaddr *)&servaddr, len))<0){
 			perror("sendto ");
 			exit(1);
@@ -77,8 +80,9 @@ int main(int argc, char **argv){
 			perror("recvfrom ");
 			exit(1);
 		}
+		gettimeofday(&stop, NULL);
+		printf("Risposta ricevuta [%f] -> ", (double) (stop.tv_sec - start.tv_sec) * 1000 + (double) (stop.tv_usec - start.tv_usec) / 1000);
 		
-		printf("Risposta ricevuta -> ");
 		if(temp == -1){
 			printf("ERRORE: File non esistente (o errore nella lettura)\n");
 		}else 
