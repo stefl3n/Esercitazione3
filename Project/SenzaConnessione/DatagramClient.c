@@ -14,16 +14,14 @@
 #include <string.h>
 
 
-	int main(int argc, char **argv){
-
+int main(int argc, char **argv){
 	struct hostent *host;
 	struct sockaddr_in clientaddr, servaddr;
-	int port, sd,byteletti;
+	int port, sd,byteletti, risposta, temp,len,cont;
 	char  req[256];
 	char c = 's';
 
 	if (argc != 3){
-
 		printf("Errore argomenti");
 		exit(1);
 	}
@@ -66,41 +64,24 @@
 		exit(1);
 	}
 
-
-
-
-	while(c == 's'){
-
-		int risposta, temp,len,cont;
-
-		printf("Inserisci il file che vuoi analizzare \n");
-		cont = scanf("%s", req);
-		getchar();
-		if(cont == EOF){
-			close(sd);
-			return 0;
-		}else {
-			len = sizeof(servaddr);
-			byteletti = sendto(sd, &req, sizeof(req)  , 0, (struct sockaddr *)&servaddr, len);
-			printf("Nome inviato e byte inviati: %i \n", byteletti);
-			recvfrom(sd, &temp, sizeof(int), 0, (struct sockaddr *)&servaddr, &len);
-			printf("risposta ricevuta \n");
-
-			if(temp == -1)
-
-				printf("File non esistente \n");
-
-			else printf("La parola piu lunga misura %d lettere \n", temp);
-			printf("Vuoi continuare ? s/n \n");
-			scanf("%c", &c);
-
-
-		}
-
-
-
+	printf("Inserisci il file che vuoi analizzare (EOF per terminare)\n");
+	
+	while((scanf("%s", req)!=EOF)){
+		len = sizeof(servaddr);
+		sendto(sd, &req, sizeof(req)  , 0, (struct sockaddr *)&servaddr, len);
+		
+		recvfrom(sd, &temp, sizeof(int), 0, (struct sockaddr *)&servaddr, &len);
+		
+		printf("Risposta ricevuta -> ");
+		if(temp == -1){
+			printf("ERRORE: File non esistente (o errore nella lettura)\n");
+		}else 
+			printf("SUCCESSO: La parola piu lunga misura %d lettere\n", temp);
+			
+		printf("\nInserire prossimo file (EOF per terminare)\n");
 	}
 	close(sd);
 	return 0;
 }
+	
 
